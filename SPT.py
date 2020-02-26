@@ -10,7 +10,7 @@ import cv2
 from picamera import PiCamera
 import os
 import json
-#GPIO pin class to control selenoid on and off
+import pymysql
 class selenoid:
 	def __init__(self, pin):
 		GPIO.setmode(GPIO.BCM)
@@ -21,14 +21,20 @@ class selenoid:
 		GPIO.output(self.pin,GPIO.HIGH)
 		sleep(float(open_time))
 		GPIO.output(self.pin,GPIO.LOW)
-#class to log data
-#should incoprate mysql login
 class data_logger:
 	def __init__(self,cage,txtspacer):
 		self.cage=cage
 		self.txtspacer=txtspacer
 		today=dt.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 		self.filename=self.cage+'/'+'SPT_'+today+'_'+self.cage+'.csv'
+		try:
+			con=pymysql.connect(host='localhost',user='pi',db='SPT_raw_data',password='SPT2019',autocommit=True)
+			cur1=con.cursor()
+			insert_statment='INSERT INTO SPT_raw_data (Timestamp,Tag,SPT_level,SPT_pattern,Event,Event_dict,Cage) VALUES (%s,%s,%s,%s,%s,%s,%s)'
+		except Exception as e:
+			print(e)
+			print('Not able to connect to local db, check connections or creditials')
+			pass
 		if not os.path.exists(cage+'/'):
 			os.mkdir(self.cage+'/')
 			print(cage+' Dictionary created')
@@ -40,6 +46,9 @@ class data_logger:
 				file.write('Time,Tag,Surcose_Pattern,SPT_level,Event,Event_dict\n')
 		else:
 			pass
+		self.con=con
+		self.cursor=cur1
+		self.insert_statment=insert_statment
 	def event_outcome(self,mice,mouse,event,event_dict):
 		spacer="    "
 		sucrose_pattern=mice[mouse]['SPT_Pattern']
@@ -48,8 +57,9 @@ class data_logger:
 		Event= current_time+spacer+mouse+spacer+sucrose_pattern+spacer+spt_level+spacer+event+spacer+event_dict
 		with open(self.filename,'a') as file:
 			file.write(dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')+self.txtspacer+mouse+self.txtspacer+sucrose_pattern+self.txtspacer+spt_level+self.txtspacer+event+self.txtspacer+event_dict+'\n')
+		values=[dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),str(mouse),str(spt_level),sucrose_pattern,event,event_dict,self.cage]
+		self.cursor.execute(self.insert_statment,values)
 		print(Event+'\n')
-#basic class to start camera
 class piVideoStream:
 	def __init__(self,folder,resolution=(640,480),framerate=90,vidformat='h264',quality=25,preview=(0,0,640,480)):
 		self.cam=PiCamera()
@@ -71,7 +81,6 @@ class piVideoStream:
 	def stop_record(self):
 		self.cam.stop_preview()
 		self.cam.stop_recording()
-#class to control buzzer
 class buzzer:
 	def __init__(self,pin,pitch,times):
 		GPIO.setmode(GPIO.BCM)
@@ -86,7 +95,7 @@ class buzzer:
 			GPIO.output(self.pin, False)
 			sleep(self.delay)
 '''
-class for adding, removing, and storing mouse settings in a dic 
+need to integrate into main as class
 '''
 import json
 import datetime as dt
@@ -161,7 +170,7 @@ class mice_dict:
                 file.write('Date,Tag,SPT_level,SPT_Pattern\n')
             log_date=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
             for k, v in self.mice_config.items():
-                file.write(log_date+','+str(k)+','+str(v['SPT_level'])+','+v['SPT_Spout']+'\n')
+                file.write(log_date+','+str(k)+','+str(v['SPT_level'])+','+v['SPT_Pattern']+'\n')
         else:
             with open(self.cage+'/'+'SPT_mouse_past_config.csv','a') as file:
                log_date=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
@@ -179,7 +188,7 @@ class mice_dict:
         for k, v in self.mice_config.items():
             self.mice_config[k]['SPT_level']=int(n_level)
 		
-#class to store and read hardware settings 
+###############
 class task_settings():
     def __init__(self,task_name):
         self.task_name=task_name
