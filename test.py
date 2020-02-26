@@ -74,12 +74,18 @@ def main():
     #the text spacer: comma for csv
     txtspacer=input('txt spacer?')
     #loop to check time
+    count=0
     while True:
+        count+=1
         now=dt.datetime.now()
         print ("Waiting for mouse....")
-        #starts new text file and switches spouts
+        #starts new text file and switches spouts if not on day 1
         log=SPT.data_logger(cage,txtspacer)
-        mice_dic.spout_swtich()
+        if count != 1:
+            mice_dic.spout_swtich()
+            print('Spout Switched')
+        else:
+            pass
         #if within same day, the main loop is ran
         while dt.datetime.now()-now < dt.timedelta(minutes=hours*60):
             #Waiting for a tag to be read
@@ -98,11 +104,11 @@ def main():
                 if mice_dic.mice_config[str(tag)]['SPT_level']== 0:
                     probability=np.random.choice([0,1],p=[0.5,0.5])
                     if int(probability)==1:
-                        selenoid_LW.activate(0.5)
+                        selenoid_LW.activate(0.3)
                         log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_L')
                         pass
                     elif int(probability)==0:
-                        selenoid_RW.activate(0.5)
+                        selenoid_RW.activate(0.3)
                         log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_R')
                         pass
                 else:
@@ -129,13 +135,13 @@ def main():
                                     print('Speaker on\n')
                                     buzzer.buzz()
                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
-                                    sleep(0.2)
+                                    sleep(0.1)
                             elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==2:
                                 if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
-                                    selenoid_RW.activate(0.1)
+                                    selenoid_RS.activate(0.1)
                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Sucrose_Reward')
                                 elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
-                                    selenoid_LW.activate(0.1)
+                                    selenoid_RW.activate(0.1)
                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Water_Reward')
                         elif lickdector[1].value:
                             if mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==0:
@@ -163,10 +169,8 @@ def main():
                     if GPIO.input(tag_in_range_pin) == GPIO.LOW: 
                     #starts the grace timer, within the grace period the task still continues and waits for the tag to return
                         grace_start=time()
+                        print('GracePeriod Starts')
                         while GPIO.input(tag_in_range_pin) == GPIO.LOW and time()-grace_start<gracePeriod:
-                            print ("loop5....")
-                            print(gracePeriod)
-                            print(temp_tag)
                             if lickdector[0].value:
                                 if mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==0:
                                     selenoid_RW.activate(0.1)
@@ -197,7 +201,7 @@ def main():
                                         print('Speaker on\n')
                                         buzzer.buzz()
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-leftside','No_Reward')
-                                        sleep(0.2)
+                                        sleep(0.05)
                                     elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
                                         selenoid_LW.activate(0.1)
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
@@ -211,9 +215,9 @@ def main():
                             sleep(0.02)
                        #When tag returns (tag read is the same as temp tag), assigns the gloablTag to temp the tag read and returns to the previous loop
                             tag = RFIDTagReader.globalTag
-                            print(tag,RFIDTagReader.globalTag)
                             if tag == temp_tag:
                                 RFIDTagReader.globalTag=tag
+                       #add loop/condition to break if new tag != temp tag; breaks out of loop and stop video recording and assigns new mice entry and video start
                        #if the time passes the grace period,stops recording and logs events then breaks out of the loop to get back the previous loop
                         if GPIO.input(tag_in_range_pin) == GPIO.LOW and time()-grace_start>=gracePeriod:   
                             print('grace period expired')
@@ -225,12 +229,11 @@ def main():
                             print('Waiting for mouse')
                             #break to get back in loop 2 
                             break
-
 #Running the script with some settings read from json file
 if __name__ == '__main__':
     task_name=input('Enter the task name: ')
     task_settings=load_settings(task_name)
-    gracePeriod=5
+    gracePeriod=3
     try: 
         tag_in_range_pin=task_settings.task_config['tag_in_range_pin']
         selenoid_pin_LW=task_settings.task_config['selenoid_pin_LW']
@@ -270,7 +273,7 @@ if __name__ == '__main__':
             mice_dic=SPT.mice_dict(cage)
             try: 
                 main()
-            #the SPT option manual for SPT
+            #the SPT option manual for SPT, currently just a template
             except KeyboardInterrupt:
                 #print('1')
                 inputStr = '\n************** SPT Manager ********************\nEnter:\n'
