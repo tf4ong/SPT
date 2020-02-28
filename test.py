@@ -1,4 +1,5 @@
 #run script for SPT home-cage
+# need better styling and implment class inheritance for better styling
 from time import time, sleep
 import board
 import busio
