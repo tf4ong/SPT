@@ -1,5 +1,5 @@
                              
-
+#setup script
 #!/bin/bash
 # This script should completely set up SPT on a blank Raspberry pi.
 #$ sudo chmod 777 AFH_script.sh
