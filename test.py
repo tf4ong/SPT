@@ -79,27 +79,23 @@ def main():
 
                 log.event_outcome(mice_dic.mice_config,str(tag),'VideoStart',filename)
                 #if at SPT level 0, an entry reward is given, if not pass 
+                '''
                 if mice_dic.mice_config[str(tag)]['SPT_level']== 0:
                     probability=np.random.choice([0,1],p=[0.5,0.5])
                     if int(probability)==1:
                         selenoid_LW.activate(0.7)
                         log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_L')
                         pass
+                    
                     elif int(probability)==0:
                         selenoid_RW.activate(0.7)
                         log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_R')
                         pass
-                elif mice_dic.mice_config[str(tag)]['SPT_level']== 1:
-                    if mice_dic.mice_config[str(tag)]['SPT_Pattern']=='R':
-                        selenoid_RW.activate(0.7)
-                        log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_R')
-                        pass
-                    elif mice_dic.mice_config[str(tag)]['SPT_Pattern']=='L':
-                        selenoid_LW.activate(0.7)
-                        log.event_outcome(mice_dic.mice_config,str(tag),'Entered','Entry_Reward_L')
-                        pass
+                
                 else:
-                    log.event_outcome(mice_dic.mice_config,str(tag),'Entered','No_Entry_Reward')
+                '''
+                log.event_outcome(mice_dic.mice_config,str(tag),'Entered','No_Entry_Reward')
+        
                 lick_count_R=0
                 lick_count_L=0
                 #loop for tag read and in range
@@ -118,7 +114,6 @@ def main():
                             if current_touched & pin_bit and not last_touched & pin_bit:
                                 if i==1:
                                     lick_count_R+=1
-                                    print(lick_count_R)
                                     if lick_count_R%2 == 0:
                                         if mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==0:
                                             selenoid_RW.activate(0.035)
@@ -134,42 +129,40 @@ def main():
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
                                         elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==2:
                                             if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
-                                                selenoid_RS.activate(0.2)
+                                                selenoid_RS.activate(0.035)
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Sucrose_Reward')
                                             elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
-                                                selenoid_RW.activate(0.2)
+                                                selenoid_RW.activate(0.035)
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Water_Reward')
                                     else:
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
                                 elif i==0:
                                     lick_count_L+=1
-                                    print(lick_count_L)
                                     if lick_count_L%2 == 0:
                                         if mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==0:
                                             selenoid_LW.activate(0.035)
                                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
-                                            print('touched0')
                                         elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==1:
                                             if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
                                                 #print('Speaker on\n')
                                                 #buzzer.buzz()
-                                                log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-leftside','No_Reward')
+                                                log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','No_Reward')
                                             elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
                                                 selenoid_LW.activate(0.035)
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
                                         elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==2:
                                             if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
-                                                selenoid_LW.activate(0.2)
+                                                selenoid_LW.activate(0.035)
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
                                             elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
-                                                selenoid_LS.activate(0.2)
+                                                selenoid_LS.activate(0.035)
                                                 log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Sucrose_Reward')
                                     else:
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-leftside','No_Reward')
                                 else:
                                     pass
                         last_touched = current_touched
-                        sleep(0.001)
+                        sleep(0.05)
                     # tag just went out of range, loop for grace period
                     if GPIO.input(tag_in_range_pin) == GPIO.LOW: 
                     #starts the grace timer, within the grace period the task still continues and waits for the tag to return
@@ -200,10 +193,10 @@ def main():
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
                                             elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==2:
                                                 if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
-                                                    selenoid_RS.activate(0.2)
+                                                    selenoid_RS.activate(0.035)
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Sucrose_Reward')
                                                 elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
-                                                    selenoid_RW.activate(0.2)
+                                                    selenoid_RW.activate(0.035)
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','Water_Reward')
                                         else:
                                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
@@ -218,26 +211,28 @@ def main():
                                                 if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
                                                     #print('Speaker on\n')
                                                     #buzzer.buzz()
-                                                    log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-leftside','No_Reward')
+                                                    log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','No_Reward')
                                                 elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
                                                     selenoid_LW.activate(0.2)
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
                                             elif mice_dic.mice_config[str(temp_tag)]['SPT_level'] ==2:
                                                 if mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='R':
-                                                    selenoid_LW.activate(0.2)
+                                                    selenoid_LW.activate(0.035)
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Water_Reward')
                                                 elif mice_dic.mice_config[str(temp_tag)]['SPT_Pattern']=='L':
-                                                    selenoid_LS.activate(0.2)
+                                                    selenoid_LS.activate(0.035)
                                                     log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','Sucrose_Reward')
                                         else:
-                                            log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-leftside','No_Reward')
+                                            log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','No_Reward')
                                 else:
                                     pass
                             last_touched = current_touched
-                            sleep(0.001)
+                            sleep(0.05)
                        #When tag returns (tag read is the same as temp tag), assigns the gloablTag to temp the tag read and returns to the previous loop
                             tag = RFIDTagReader.globalTag
                             if tag == temp_tag:
+                                RFIDTagReader.globalTag=temp_tag
+                            else:
                                 RFIDTagReader.globalTag=tag
                        #add loop/condition to break if new tag != temp tag; breaks out of loop and stop video recording and assigns new mice entry and video start
                        #if the time passes the grace period,stops recording and logs events then breaks out of the loop to get back the previous loop
@@ -245,7 +240,7 @@ def main():
                             print('grace period expired')
                             vs.stop_record()
                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'VideoEnd',filename)
-                            sleep(0.001)
+                            sleep(0.05)
                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'Exit','None')
                             print('Waiting for mouse')
                             #break to get back in loop 2 
@@ -255,8 +250,7 @@ if __name__ == '__main__':
     task_name=input('Enter the task name: ')
     task_settings=load_settings(task_name)
     #mice interference
-    gracePeriod=2.5
-    lickreward_delay=0.5
+    gracePeriod=0.7
     try: 
         tag_in_range_pin=task_settings.task_config['tag_in_range_pin']
         selenoid_pin_LW=task_settings.task_config['selenoid_pin_LW']
