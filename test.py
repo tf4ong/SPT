@@ -22,6 +22,7 @@ def load_settings(task_name):
     except AttributeError:
         print('Creating new task settings file')
         task_settings.write_new_settings()
+        
     else: 
         pass
     return  task_settings
@@ -39,7 +40,7 @@ def entrance_reward(t):
             pass
     else:
         log.event_outcome(mice_dic.mice_config,str(t),'Entered','No_Entry_Reward')
-def rewarder(tt):
+def rewarder_R(tt):
     try:
         if mice_dic.mice_config[str(tt)]['SPT_level'] ==0:
             selenoid_RW.activate(0.035)
@@ -65,7 +66,32 @@ def rewarder(tt):
         print('new_tag, need to log the mice')
         log.event_outcome(mice_dic.mice_config,str(tag),'New_mice','None')
         pass
-
+def rewarder_L(tt):
+    try:
+        if mice_dic.mice_config[str(tt)]['SPT_level'] ==0:
+            selenoid_RW.activate(0.035)
+            log.event_outcome(mice_dic.mice_config,str(tt),'licked-Lefttside','Water_Reward')
+        elif mice_dic.mice_config[str(tt)]['SPT_level'] ==1:
+            if mice_dic.mice_config[str(tt)]['SPT_Pattern']=='L':
+                selenoid_RW.activate(0.035)
+                log.event_outcome(mice_dic.mice_config,str(tt),'licked-Leftside','Water_Reward')
+            elif mice_dic.mice_config[str(tt)]['SPT_Pattern']=='R':
+                #speaker on 
+                #print('Speaker on\n')
+                #buzzer.buzz()
+                log.event_outcome(mice_dic.mice_config,str(tt),'licked-Leftside','No_Reward')
+        elif mice_dic.mice_config[str(tt)]['SPT_level'] ==2:
+            if mice_dic.mice_config[str(tt)]['SPT_Pattern']=='L':
+                selenoid_RS.activate(0.035)
+                log.event_outcome(mice_dic.mice_config,str(tt),'licked-Leftside','Sucrose_Reward')
+            elif mice_dic.mice_config[str(tt)]['SPT_Pattern']=='R':
+                selenoid_RW.activate(0.035)
+                log.event_outcome(mice_dic.mice_config,str(tt),'licked-Leftside','Water_Reward')
+    except Exception as e:
+        print(e)
+        print('new_tag, need to log the mice')
+        log.event_outcome(mice_dic.mice_config,str(tag),'New_mice','None')
+        pass
 """
 Main loop for SPT 
 """
@@ -77,11 +103,12 @@ def main():
     global log
     global GPIO
     global mice_dic 
+    global starttime
     globalReader = TagReader(serialPort, True, timeOutSecs = 0.05, kind='ID')
     globalReader.installCallback (tag_in_range_pin)
     #Starting loop to check time passed
     #After n hours (in json file), the SPT spouts are switched from each sides
-    now=dt.datetime.now()
+    starttime=dt.datetime.now()
     #reads the mouse dict file
     mice_dic=SPT.mice_dict(cage)
     #the text spacer: comma for csv
@@ -121,7 +148,7 @@ def main():
 
                 log.event_outcome(mice_dic.mice_config,str(tag),'VideoStart',filename)
                 #if at SPT level 0, an entry reward is given, if not pass 
-                entrance_reward(t)
+                entrance_reward(tag)
                 lick_count_R=0
                 lick_count_L=0
                 #loop for tag read and in range
@@ -141,13 +168,13 @@ def main():
                                 if i==1:
                                     lick_count_R+=1
                                     if lick_count_R%2 == 0:
-                                        rewarder(temp_tag)
+                                        rewarder_R(temp_tag)
                                     else:
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
                                 elif i==0:
                                     lick_count_L+=1
                                     if lick_count_L%2 == 0:
-                                        rewarder(temp_tag)
+                                        rewarder_L(temp_tag)
                                     else:
                                         log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','No_Reward')
                                 else:
@@ -170,14 +197,14 @@ def main():
                                         lick_count_R+=1
                                         print(lick_count_R)
                                         if lick_count_R%2 == 0:
-                                            rewarder(temp_tag)
+                                            rewarder_R(temp_tag)
                                         else:
                                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Rightside','No_Reward')
                                     elif i==0:
                                         lick_count_L+=1
                                         print(lick_count_L)
                                         if lick_count_L%2 == 0:
-                                            rewarder(temp_tag)
+                                            rewarder_L(temp_tag)
                                         else:
                                             log.event_outcome(mice_dic.mice_config,str(temp_tag),'licked-Leftside','No_Reward')
                                 else:
@@ -189,7 +216,12 @@ def main():
                             if tag == temp_tag:
                                 RFIDTagReader.globalTag=temp_tag
                             else:
-                                RFIDTagReader.globalTag=tag
+                                if tag != 0:
+                                    temp_tag=tag
+                                    RFIDTagReader.globalTag=temp_tag
+                                    break
+                                else:
+                                    pass
                        #add loop/condition to break if new tag != temp tag; breaks out of loop and stop video recording and assigns new mice entry and video start
                        #if the time passes the grace period,stops recording and logs events then breaks out of the loop to get back the previous loop
                         if GPIO.input(tag_in_range_pin) == GPIO.LOW and time()-grace_start>=gracePeriod:   
@@ -207,7 +239,6 @@ if __name__ == '__main__':
     parser.add_argument('-t',metavar='task_name',type=str,help='Task settings to run SPT',default='none')
     parser.add_argument('-c',metavar='cage',type=str,help='Cage to run SPT',default='none')
     args=parser.parse_args()
-    print(args.t)
     if args.t is 'none':
         task_name=input('Enter the task name: ')
     else:
@@ -216,10 +247,9 @@ if __name__ == '__main__':
         cage=input('Enter the cage to run: ')
     else:
         cage=args.c
-    print(args.c)
     task_settings=load_settings(task_name)
     #mice interference
-    gracePeriod=0.7
+    gracePeriod=10
     try: 
         tag_in_range_pin=task_settings.task_config['tag_in_range_pin']
         selenoid_pin_LW=task_settings.task_config['selenoid_pin_LW']
@@ -278,5 +308,8 @@ if __name__ == '__main__':
             raise anError
         finally:
             print('Quitting SPT run')
+            with open ('starttime_log.txt','w') as file:
+                file.write('start_time,cage\n')
+                file.write(starttime.strftime('%Y-%m-%d_%H-%M-%S')+','+cage)
             GPIO.cleanup()
             sys.exit()
