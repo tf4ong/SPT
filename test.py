@@ -22,11 +22,9 @@ def load_settings(task_name):
     except AttributeError:
         print('Creating new task settings file')
         task_settings.write_new_settings()
-        
     else: 
         pass
     return  task_settings
-    
 def entrance_reward(t):
     if mice_dic.mice_config[str(t)]['SPT_level']== 0:
         probability=np.random.choice([0,1],p=[0.5,0.5])
@@ -103,12 +101,11 @@ def main():
     global log
     global GPIO
     global mice_dic 
-    global starttime
+    global now
     globalReader = TagReader(serialPort, True, timeOutSecs = 0.05, kind='ID')
     globalReader.installCallback (tag_in_range_pin)
     #Starting loop to check time passed
     #After n hours (in json file), the SPT spouts are switched from each sides
-    starttime=dt.datetime.now()
     #reads the mouse dict file
     mice_dic=SPT.mice_dict(cage)
     #the text spacer: comma for csv
@@ -118,7 +115,10 @@ def main():
     count=0
     while True:
         count+=1
-        now=dt.datetime.now()
+        if now == 'none':
+            now=dt.datetime.now()
+        else:
+            now= dt.datetime.strptime(now,'%Y-%m-%d_%H-%M-%S')
         current_touched = cap.touched()
         print ("Waiting for mouse....")
         #starts new text file and switches spouts if not on day 1
@@ -217,7 +217,9 @@ def main():
                                 RFIDTagReader.globalTag=temp_tag
                             else:
                                 if tag != 0:
+                                    log.event_outcome(mice_dic.mice_config,str(temp_tag),'Exit','None')
                                     temp_tag=tag
+                                    log.event_outcome(mice_dic.mice_config,str(temp_tag),'Entered','None')
                                     RFIDTagReader.globalTag=temp_tag
                                     break
                                 else:
@@ -236,17 +238,19 @@ def main():
 #Running the script with some settings read from json file
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
-    parser.add_argument('-t',metavar='task_name',type=str,help='Task settings to run SPT',default='none')
-    parser.add_argument('-c',metavar='cage',type=str,help='Cage to run SPT',default='none')
+    parser.add_argument('-task',metavar='task_name',type=str,help='Task settings to run SPT',default='none')
+    parser.add_argument('-cage',metavar='cage',type=str,help='Cage to run SPT',default='none')
+    parser.add_argument('-time',metavar='now',type=str,help='Time of day before last shut down',default='none')
     args=parser.parse_args()
-    if args.t is 'none':
+    if args.task is 'none':
         task_name=input('Enter the task name: ')
     else:
-        task_name=args.t
-    if args.c is 'none':
+        task_name=args.task
+    if args.cage is 'none':
         cage=input('Enter the cage to run: ')
     else:
-        cage=args.c
+        cage=args.cage
+    now=args.time
     task_settings=load_settings(task_name)
     #mice interference
     gracePeriod=10
@@ -310,6 +314,7 @@ if __name__ == '__main__':
             print('Quitting SPT run')
             with open ('starttime_log.txt','w') as file:
                 file.write('start_time,cage\n')
-                file.write(starttime.strftime('%Y-%m-%d_%H-%M-%S')+','+cage)
+                file.write(now.strftime('%Y-%m-%d_%H-%M-%S')+','+cage)
+            print(now)
             GPIO.cleanup()
             sys.exit()
