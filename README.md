@@ -6,7 +6,7 @@ A scipt to run a chronic automated sucrose preference test of mice in home cage.
 - Subsequent analytical scripts will also be uploaded
 ## RFID identification
 - A ID-20LA RFID tag reader will be at the beginning of the SPT tunnel to identify each mouse
-## spout choice
+## Spout choice At the of the SPT Tunnel
 - At the end of the tunnel there are two double spouts on each side.
 - A reward water/sucrose water is dispensed for every n links at each double spout. The n number of licks can be set accordingly
 - Every 24 hour, the side which dispenses water/sucrose is swaped for the specific mout
