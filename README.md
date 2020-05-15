@@ -10,7 +10,7 @@ A scipt to run a chronic automated sucrose preference test of mice in home cage.
 - At the end of the tunnel there are two double spouts on each side.
 - A reward water/sucrose water is dispensed for every n links at each double spout. The n number of licks can be set accordingly
 - Every 24 hour, the side which dispenses water/sucrose is swaped for the specific mouse
-### An image inside the SPT tunnel from the behaviroal cameria
-Solarized dark             |  Solarized Ocean
+### Mouse Licking Spouts For Rewards
+Mouse Licking Right Spout             |  Mouse Licking Left Spout
 :-------------------------:|:-------------------------:
-![](right_spout_lick.gif) | ![](left_spout_lick.gif)
+![](Right_spout_lick.gif) | ![](Left_spout_lick.gif)
