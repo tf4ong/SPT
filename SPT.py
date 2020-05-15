@@ -187,7 +187,8 @@ class mice_dict:
         n_level=input('Enter level for all mice to increase to: ')
         for k, v in self.mice_config.items():
             self.mice_config[k]['SPT_level']=int(n_level)
-		
+
+	
 ###############
 class task_settings():
     def __init__(self,task_name):
