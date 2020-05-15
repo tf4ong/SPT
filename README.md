@@ -13,4 +13,4 @@ A scipt to run a chronic automated sucrose preference test of mice in home cage.
 ### An image inside the SPT tunnel from the behaviroal cameria
 Solarized dark             |  Solarized Ocean
 :-------------------------:|:-------------------------:
-
+![](right_spout_lick.gif) | ![](left_spout_lick.gif)
