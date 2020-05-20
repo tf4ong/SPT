@@ -16,7 +16,7 @@ A scipt to run a chronic automated sucrose preference test of mice in home cage.
 
 
 
-##Some Preliminary Videos
+## Some Preliminary Videos
 ### Mouse Licking Spouts For Rewards In The Sucrose Preference Test Tunnel
 Mouse Licking Right Spout             |  Mouse Licking Left Spout
 :-------------------------:|:-------------------------:
