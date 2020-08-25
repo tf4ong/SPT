@@ -12,17 +12,35 @@ import os
 import json
 import pymysql
 class selenoid:
+	'''
+	class for selenoid
+	'''
 	def __init__(self, pin):
+		'''
+		setsup
+		'''
 		GPIO.setmode(GPIO.BCM)
 		self.pin=pin
 		GPIO.setup(self.pin,GPIO.OUT)
 	def activate(self,open_time):
+		'''
+		activates/deactivates the selenoid
+		'''
 		GPIO.setwarnings(False)
 		GPIO.output(self.pin,GPIO.HIGH)
 		sleep(float(open_time))
 		GPIO.output(self.pin,GPIO.LOW)
 class data_logger:
+	'''
+	Data logger class
+	Can be used with local/remote SQL DB. Currently, only uses local DB
+	Also logs the data in a single txt file for the date
+	'''
 	def __init__(self,cage,txtspacer):
+		'''
+		cage: cage ID 
+		txtspacer: the spacer used, reccommended ,
+		'''
 		self.cage=cage
 		self.txtspacer=txtspacer
 		today=dt.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -50,6 +68,9 @@ class data_logger:
 		self.cursor=cur1
 		self.insert_statment=insert_statment
 	def event_outcome(self,mice,mouse,event,event_dict):
+		'''
+		saves the event outcome for the spt 
+		'''
 		spacer="    "
 		sucrose_pattern=mice[mouse]['SPT_Pattern']
 		spt_level=str(mice[mouse]['SPT_level'])
