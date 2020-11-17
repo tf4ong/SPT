@@ -13,7 +13,8 @@ A scipt to run a chronic automated sucrose preference test of mice in home cage.
 - Every 24 hour, the side which dispenses water/sucrose is swaped for the specific mouse
 ### Design and Layout of the Sucrose Preference Tunnel
 ![](SPT_tunnel_design.JPG)
-
+#### CAD Parts Assembly 
+![](SPT_tunnel_assembly.JPG)
 
 ## Some Preliminary Videos
 ### Mouse Licking Spouts For Rewards In The Sucrose Preference Test Tunnel
