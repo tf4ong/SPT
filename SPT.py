@@ -12,35 +12,23 @@ import os
 import json
 import pymysql
 class selenoid:
-	'''
-	class for selenoid
-	'''
 	def __init__(self, pin):
-		'''
-		setsup
-		'''
 		GPIO.setmode(GPIO.BCM)
 		self.pin=pin
 		GPIO.setup(self.pin,GPIO.OUT)
 	def activate(self,open_time):
-		'''
-		activates/deactivates the selenoid
-		'''
 		GPIO.setwarnings(False)
 		GPIO.output(self.pin,GPIO.HIGH)
 		sleep(float(open_time))
 		GPIO.output(self.pin,GPIO.LOW)
+	def flush(self):
+		GPIO.setwarnings(False)
+		GPIO.output(self.pin,GPIO.HIGH)
+	def close(self):
+		GPIO.setwarnings(False)
+		GPIO.output(self.pin,GPIO.LOW)
 class data_logger:
-	'''
-	Data logger class
-	Can be used with local/remote SQL DB. Currently, only uses local DB
-	Also logs the data in a single txt file for the date
-	'''
 	def __init__(self,cage,txtspacer):
-		'''
-		cage: cage ID 
-		txtspacer: the spacer used, reccommended ,
-		'''
 		self.cage=cage
 		self.txtspacer=txtspacer
 		today=dt.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
@@ -67,20 +55,22 @@ class data_logger:
 		self.con=con
 		self.cursor=cur1
 		self.insert_statment=insert_statment
-	def event_outcome(self,mice,mouse,event,event_dict):
-		'''
-		saves the event outcome for the spt 
-		'''
-		spacer="    "
-		sucrose_pattern=mice[mouse]['SPT_Pattern']
-		spt_level=str(mice[mouse]['SPT_level'])
-		current_time=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S.%f')[:-3]
-		Event= current_time+spacer+mouse+spacer+sucrose_pattern+spacer+spt_level+spacer+event+spacer+event_dict
-		with open(self.filename,'a') as file:
-			file.write(dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')+self.txtspacer+mouse+self.txtspacer+sucrose_pattern+self.txtspacer+spt_level+self.txtspacer+event+self.txtspacer+event_dict+'\n')
-		values=[dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),str(mouse),str(spt_level),sucrose_pattern,event,event_dict,self.cage]
+		values=[dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),'Newday','Newday','Newday','Newday','Newday',self.cage]
 		self.cursor.execute(self.insert_statment,values)
-		print(Event+'\n')
+	def event_outcome(self,mice,mouse,event,event_dict):
+		spacer="    "
+		try:
+		    sucrose_pattern=mice[mouse]['SPT_Pattern']
+		    spt_level=str(mice[mouse]['SPT_level'])
+		    current_time=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S.%f')[:-3]
+		    Event= current_time+spacer+mouse+spacer+sucrose_pattern+spacer+spt_level+spacer+event+spacer+event_dict
+		    with open(self.filename,'a') as file:
+			    file.write(dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')+self.txtspacer+mouse+self.txtspacer+sucrose_pattern+self.txtspacer+spt_level+self.txtspacer+event+self.txtspacer+event_dict+'\n')
+		    values=[dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S'),str(mouse),str(spt_level),sucrose_pattern,event,event_dict,self.cage]
+		    self.cursor.execute(self.insert_statment,values)
+		    print(Event+'\n')
+		except Exception:
+			pass
 class piVideoStream:
 	def __init__(self,folder,resolution=(640,480),framerate=90,vidformat='h264',quality=25,preview=(0,0,640,480)):
 		self.cam=PiCamera()
@@ -135,7 +125,7 @@ class mice_dict:
             self.startup()
         else:
             with open(self.config_file_path,'r') as file:
-                self.mice_config=json.loads(file.read().replace('\n',',')) 
+                self.mice_config=json.loads(file.read().replace('\n',','))[0]
     def startup(self):
         if os.path.exists(self.config_file_path):
             print('Config file for '+self.cage+' already exists')
@@ -189,9 +179,9 @@ class mice_dict:
         if not os.path.exists(self.cage+'/'+'SPT_mouse_past_config.csv'):
             with open(self.cage+'/'+'SPT_mouse_past_config.csv','w') as file:
                 file.write('Date,Tag,SPT_level,SPT_Pattern\n')
-            log_date=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-            for k, v in self.mice_config.items():
-                file.write(log_date+','+str(k)+','+str(v['SPT_level'])+','+v['SPT_Pattern']+'\n')
+                log_date=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+                for k, v in self.mice_config.items():
+                   file.write(log_date+','+str(k)+','+str(v['SPT_level'])+','+v['SPT_Pattern']+'\n')
         else:
             with open(self.cage+'/'+'SPT_mouse_past_config.csv','a') as file:
                log_date=dt.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
@@ -208,8 +198,7 @@ class mice_dict:
         n_level=input('Enter level for all mice to increase to: ')
         for k, v in self.mice_config.items():
             self.mice_config[k]['SPT_level']=int(n_level)
-
-	
+		
 ###############
 class task_settings():
     def __init__(self,task_name):
@@ -221,7 +210,7 @@ class task_settings():
             pass
         else:
             with open(self.config_file_path,'r') as file:
-                self.task_config=json.loads(file.read().replace('\n',','))
+                self.task_config=json.loads(file.read().replace('\n',','))[0]
             print('SPT_'+self.task_name+' settings loaded')
     def write_new_settings(self):
         if os.path.exists(self.config_file_path):
@@ -254,3 +243,4 @@ class task_settings():
         temp= json.dumps(self.task_config).replace(',','\n')
         with open ('SPT_'+self.task_name+'.jsn','w') as outfile:
             outfile.write(temp)
+
