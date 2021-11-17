@@ -92,6 +92,7 @@ class piVideoStream:
 	def stop_record(self):
 		self.cam.stop_preview()
 		self.cam.stop_recording()
+		self.cam.close()
 class buzzer:
 	def __init__(self,pin,pitch,times):
 		GPIO.setmode(GPIO.BCM)
